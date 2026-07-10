@@ -42,6 +42,24 @@ node prisma/seed.js
 npm run dev
 ```
 
+## Auth
+
+All `/api/projects` and `/api/projects/:id/trace/*` routes require a JWT.
+Get one by signing up (creates a new organization + its first `ADMIN` user):
+
+```bash
+curl -X POST http://localhost:4000/api/auth/signup \
+  -H 'Content-Type: application/json' \
+  -d '{"organizationName":"Acme Medtech","email":"admin@acme.test","password":"correcthorsebattery"}'
+```
+
+Use the returned `token` as `Authorization: Bearer <token>` on subsequent
+requests. An `ADMIN` can invite teammates into the same org via
+`POST /api/auth/invite` with `{ email, password, role }`
+(`role` is one of `ADMIN`, `ENGINEER`, `QUALITY`, `VIEWER`; `VIEWER` is
+read-only). Note: the frontend shell does not yet have a login UI — see
+`docs/ROADMAP.md`.
+
 ## Getting started (frontend)
 
 ```bash

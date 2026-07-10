@@ -1,32 +1,42 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
+import { loadOrgProject } from "../lib/authz.js";
 
 export const projectsRouter = Router();
+
+projectsRouter.use(requireAuth);
 
 // List projects for the caller's organization.
 projectsRouter.get("/", async (req, res) => {
   const projects = await prisma.project.findMany({
+    where: { organizationId: req.user.organizationId },
     include: { compliancePacks: { include: { compliancePack: true } } },
   });
   res.json(projects);
 });
 
-// Create a new project.
-projectsRouter.post("/", async (req, res) => {
-  const { name, description, organizationId } = req.body;
-  if (!name || !organizationId) {
-    return res.status(400).json({ error: "name and organizationId are required" });
+// Create a new project, scoped to the caller's organization.
+projectsRouter.post("/", requireRole("ADMIN", "ENGINEER"), async (req, res) => {
+  const { name, description } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: "name is required" });
   }
   const project = await prisma.project.create({
-    data: { name, description, organizationId },
+    data: { name, description, organizationId: req.user.organizationId },
   });
   res.status(201).json(project);
 });
 
 // Attach a compliance pack to a project (e.g. "iso13485", "do178c").
-projectsRouter.post("/:projectId/compliance-packs", async (req, res) => {
+projectsRouter.post("/:projectId/compliance-packs", requireRole("ADMIN", "ENGINEER"), async (req, res) => {
   const { projectId } = req.params;
   const { standardId } = req.body;
+
+  const project = await loadOrgProject(projectId, req.user.organizationId);
+  if (!project) {
+    return res.status(404).json({ error: "Project not found" });
+  }
 
   const pack = await prisma.compliancePack.findUnique({ where: { standardId } });
   if (!pack) {

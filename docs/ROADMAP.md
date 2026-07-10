@@ -18,10 +18,16 @@ between sessions.
 - [x] Strategy doc capturing positioning, competitors, differentiation,
       and known gaps (docs/STRATEGY.md)
 
-## Next up (not yet built)
+## Done (this iteration)
 
-- [ ] Auth: real JWT issuance/login, org-scoped roles enforced on routes
-      (currently stubbed — no auth middleware yet)
+- [x] Auth: JWT signup/login/invite, `requireAuth` + `requireRole` middleware,
+      org-scoped queries on `projects` and `traceability` routes (was
+      previously stubbed — no auth middleware existed)
+- [x] Fixed a routing bug in `traceability.js` where sub-routes redeclared
+      `:projectId` instead of using `mergeParams`, making every trace route
+      unreachable without a duplicated ID segment in the URL
+
+## Next up (not yet built)
 - [ ] Flesh out GapRule sets per pack beyond the one demo rule each
       (real ISO 14971 / DO-178C objective coverage)
 - [ ] ArtifactTemplate content: actual required-section structures for

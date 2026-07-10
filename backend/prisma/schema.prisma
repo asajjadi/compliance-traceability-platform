@@ -30,6 +30,7 @@ model User {
   id             String       @id @default(cuid())
   email          String       @unique
   name           String?
+  passwordHash   String
   role           Role         @default(ENGINEER)
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
