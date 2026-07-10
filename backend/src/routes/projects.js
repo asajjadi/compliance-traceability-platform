@@ -20,6 +20,21 @@ projectsRouter.get(
   })
 );
 
+// Fetch a single project, scoped to the caller's organization.
+projectsRouter.get(
+  "/:projectId",
+  asyncHandler(async (req, res) => {
+    const project = await prisma.project.findFirst({
+      where: { id: req.params.projectId, organizationId: req.user.organizationId },
+      include: { compliancePacks: { include: { compliancePack: true } } },
+    });
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+    res.json(project);
+  })
+);
+
 // Create a new project, scoped to the caller's organization.
 projectsRouter.post(
   "/",

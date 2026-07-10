@@ -1,41 +1,39 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./lib/AuthContext.jsx";
+import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
+import { Layout } from "./components/Layout.jsx";
+import { LoginPage } from "./pages/LoginPage.jsx";
+import { SignupPage } from "./pages/SignupPage.jsx";
+import { ProjectsPage } from "./pages/ProjectsPage.jsx";
+import { ProjectDetailPage } from "./pages/ProjectDetailPage.jsx";
 
 export default function App() {
-  const [projects, setProjects] = useState([]);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetch("/api/projects")
-      .then((r) => r.json())
-      .then(setProjects)
-      .catch((err) => setError(err.message));
-  }, []);
-
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", padding: "2rem", maxWidth: 720, margin: "0 auto" }}>
-      <h1>Compliance Traceability Platform</h1>
-      <p style={{ color: "#555" }}>
-        Core engine scaffold. Sector-specific behavior comes from compliance
-        packs attached per project — see <code>docs/ARCHITECTURE.md</code>.
-      </p>
-
-      {error && <p style={{ color: "crimson" }}>API error: {error} (is the backend running?)</p>}
-
-      <h2>Projects</h2>
-      {projects.length === 0 && !error && <p>No projects yet.</p>}
-      <ul>
-        {projects.map((p) => (
-          <li key={p.id}>
-            <strong>{p.name}</strong>
-            {p.compliancePacks?.length > 0 && (
-              <>
-                {" — packs: "}
-                {p.compliancePacks.map((cp) => cp.compliancePack.name).join(", ")}
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route element={<Layout />}>
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <ProjectsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:projectId"
+              element={
+                <ProtectedRoute>
+                  <ProjectDetailPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

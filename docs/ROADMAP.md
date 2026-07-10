@@ -43,11 +43,24 @@ between sessions.
       condition → derived system requirement). Verified end-to-end against a
       real Postgres instance with fully-linked projects scoring 100.
 
+## Done (this iteration, continued)
+
+- [x] ArtifactTemplate content: real required-section structures for the
+      ISO 13485 Design and Development File (DDF) and Medical Device File
+      (MDF), and DO-178C Annex A software life cycle data categories.
+      Exposed via new `GET /api/compliance-packs[/:standardId]` routes
+      (this data previously had no API route at all).
+- [x] Frontend: login/signup pages with JWT storage, project creation,
+      pack-attachment UI, an SVG trace graph visualization (grouped by node
+      type with drawn edges), node/link creation forms, and a live
+      audit-readiness/gap-report view. Verified end-to-end with a headless
+      browser driving the real dev server against the real API: signup →
+      create project → attach pack → add nodes/links → readiness hits
+      100% → log out → log back in.
+- [x] Added `GET /api/projects/:id` (single-project fetch) — the frontend
+      detail page needed it and it didn't exist before.
+
 ## Next up (not yet built)
-- [ ] ArtifactTemplate content: actual required-section structures for
-      DDF/MDF (medtech) and DO-178C life-cycle data
-- [ ] Frontend: trace graph visualization (not just a project list),
-      gap-report view, project creation UI, pack-attachment UI
 - [ ] Migration/import path from spreadsheets, DOORS/ReqIF, CSV — flagged
       in strategy doc as a hard requirement for real adoption
 - [ ] Hosting/deployment setup so the app is live and usable from a phone

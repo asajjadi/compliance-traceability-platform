@@ -18,9 +18,9 @@ for the data model and system design.
 
 ## Status
 
-Core engine scaffold — no compliance pack has full rule coverage yet. Two
-starter packs (`iso13485`, `do178c`) are seeded to prove out the plug-in
-architecture. See `docs/ROADMAP.md` for what's next.
+Core engine with auth, real gap-rule coverage, and a working frontend for
+both starter packs (`iso13485`, `do178c`). See `docs/ROADMAP.md` for what's
+next.
 
 ## Project layout
 
@@ -57,8 +57,7 @@ Use the returned `token` as `Authorization: Bearer <token>` on subsequent
 requests. An `ADMIN` can invite teammates into the same org via
 `POST /api/auth/invite` with `{ email, password, role }`
 (`role` is one of `ADMIN`, `ENGINEER`, `QUALITY`, `VIEWER`; `VIEWER` is
-read-only). Note: the frontend shell does not yet have a login UI — see
-`docs/ROADMAP.md`.
+read-only).
 
 ## Getting started (frontend)
 
@@ -67,6 +66,11 @@ cd frontend
 npm install
 npm run dev
 ```
+
+Open the dev server URL and sign up from the browser (creates your
+organization + first `ADMIN` user) — no need to call the API by hand. From
+there you can create a project, attach a compliance pack, add trace nodes
+and links, and see the live audit-readiness score and gap report.
 
 ## Running the AI agent manually
 
