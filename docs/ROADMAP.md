@@ -26,10 +26,24 @@ between sessions.
 - [x] Fixed a routing bug in `traceability.js` where sub-routes redeclared
       `:projectId` instead of using `mergeParams`, making every trace route
       unreachable without a duplicated ID segment in the URL
+- [x] Fixed a schema bug: `TraceLink.fromId`/`toId` had hard foreign keys
+      into `RequirementNode` even though `TraceLink` is meant to be a
+      polymorphic edge between any two node types — this made every link
+      whose endpoint wasn't a `RequirementNode` fail with a DB constraint
+      error (i.e. most real links). Removed the FKs; integrity is now
+      enforced at the application layer in `traceability.js`.
+- [x] Fixed a reliability bug: async route handlers weren't wrapped, so an
+      unhandled rejection (e.g. the FK violation above) crashed the whole
+      Node process for every tenant. Added `asyncHandler` + a central Express
+      error handler that maps known Prisma errors to proper 4xx responses.
+- [x] Flesh out GapRule sets per pack beyond the one demo rule each — real
+      chains now: ISO 13485 (design input → design output → verification,
+      hazard → mitigation → verification) and DO-178C (system requirement →
+      software requirement → code module → verification, plus failure
+      condition → derived system requirement). Verified end-to-end against a
+      real Postgres instance with fully-linked projects scoring 100.
 
 ## Next up (not yet built)
-- [ ] Flesh out GapRule sets per pack beyond the one demo rule each
-      (real ISO 14971 / DO-178C objective coverage)
 - [ ] ArtifactTemplate content: actual required-section structures for
       DDF/MDF (medtech) and DO-178C life-cycle data
 - [ ] Frontend: trace graph visualization (not just a project list),

@@ -70,9 +70,6 @@ model RequirementNode {
   status      String   @default("draft")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  linksFrom TraceLink[] @relation("ReqLinksFrom")
-  linksTo   TraceLink[] @relation("ReqLinksTo")
 }
 
 model DesignElement {
@@ -122,7 +119,12 @@ model EvidenceArtifact {
 }
 
 // Generic edge table linking any node type to any other node type.
-// fromType/toType hold the model name as a string (e.g. "RequirementNode").
+// fromType/toType hold the model name as a string (e.g. "RequirementNode"),
+// and fromId/toId are plain string references into whichever table that
+// names — deliberately NOT foreign keys, since a single column can't hold a
+// hard FK into more than one target table. Referential integrity for these
+// is enforced at the application layer (see traceability.js), the standard
+// tradeoff for a polymorphic association in a relational schema.
 model TraceLink {
   id        String   @id @default(cuid())
   project   Project  @relation(fields: [projectId], references: [id])
@@ -133,9 +135,6 @@ model TraceLink {
   toId      String
   linkType  String // e.g. "verifies" | "mitigates" | "implements" | "traces_to"
   createdAt DateTime @default(now())
-
-  requirementFrom RequirementNode? @relation("ReqLinksFrom", fields: [fromId], references: [id], map: "trace_req_from")
-  requirementTo   RequirementNode? @relation("ReqLinksTo", fields: [toId], references: [id], map: "trace_req_to")
 }
 
 // ---- Compliance packs (the sector-specific configuration layer) ----
