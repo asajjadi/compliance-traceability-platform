@@ -6,6 +6,7 @@ import { NodeCreateForm } from "../components/NodeCreateForm.jsx";
 import { LinkCreateForm } from "../components/LinkCreateForm.jsx";
 import { GapReport } from "../components/GapReport.jsx";
 import { PackAttachment } from "../components/PackAttachment.jsx";
+import { CsvImport } from "../components/CsvImport.jsx";
 
 export function ProjectDetailPage() {
   const { projectId } = useParams();
@@ -75,9 +76,14 @@ export function ProjectDetailPage() {
         <NodeCreateForm projectId={projectId} onCreated={() => { refreshGraph(); refreshReadiness(); }} />
       </section>
 
-      <section style={{ marginTop: "1.5rem", marginBottom: "2rem" }}>
+      <section style={{ marginTop: "1.5rem" }}>
         <h2 style={{ fontSize: "1rem" }}>Add trace link</h2>
         <LinkCreateForm projectId={projectId} graph={graph} onCreated={() => { refreshGraph(); refreshReadiness(); }} />
+      </section>
+
+      <section style={{ marginTop: "2rem", marginBottom: "2rem" }}>
+        <h2 style={{ fontSize: "1rem" }}>Bulk import from CSV</h2>
+        <CsvImport projectId={projectId} onImported={() => { refreshGraph(); refreshReadiness(); }} />
       </section>
     </div>
   );

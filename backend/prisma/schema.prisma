@@ -68,8 +68,13 @@ model RequirementNode {
   title       String
   description String?
   status      String   @default("draft")
+  // Origin-system identifier (DOORS ID, spreadsheet row key, etc.) so a
+  // second CSV/ReqIF import pass can wire up links by external reference.
+  externalId  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([projectId, externalId])
 }
 
 model DesignElement {
@@ -80,8 +85,11 @@ model DesignElement {
   title       String
   description String?
   status      String   @default("draft")
+  externalId  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([projectId, externalId])
 }
 
 model VerificationRecord {
@@ -92,8 +100,11 @@ model VerificationRecord {
   title       String
   outcome     String? // e.g. "pass" | "fail" | "pending"
   description String?
+  externalId  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([projectId, externalId])
 }
 
 model RiskControl {
@@ -104,8 +115,11 @@ model RiskControl {
   title         String
   severity      String?
   description   String?
+  externalId    String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@unique([projectId, externalId])
 }
 
 model EvidenceArtifact {

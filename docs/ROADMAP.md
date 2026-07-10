@@ -60,9 +60,25 @@ between sessions.
 - [x] Added `GET /api/projects/:id` (single-project fetch) — the frontend
       detail page needed it and it didn't exist before.
 
+## Done (this iteration, continued further)
+
+- [x] CSV migration/import path: `POST /api/projects/:id/trace/import/nodes`
+      and `.../import/links`, two-pass (nodes carry an optional `externalId`
+      from the source system, links resolve endpoints by `externalId` so
+      callers never need our internal database IDs). Idempotent — re-
+      importing the same `externalId` updates rather than duplicates.
+      Required a schema change (`externalId String?` + a
+      `@@unique([projectId, externalId])` per node table). Format documented
+      in `docs/IMPORT.md`. Frontend has file-upload import buttons on the
+      project detail page. Verified end-to-end with a real browser: import
+      5 nodes + 5 links from CSV, readiness score reaches 100%, re-import is
+      a no-op (no duplicates), and a bad row (unresolvable `externalId`)
+      reports a clean per-row error without failing the whole batch.
+      Native ReqIF (XML) import is still unbuilt — noted in `docs/IMPORT.md`
+      as a follow-up (a ReqIF-to-CSV converter would unblock it without an
+      API change).
+
 ## Next up (not yet built)
-- [ ] Migration/import path from spreadsheets, DOORS/ReqIF, CSV — flagged
-      in strategy doc as a hard requirement for real adoption
 - [ ] Hosting/deployment setup so the app is live and usable from a phone
       browser (e.g. Railway/Render for backend+DB, Vercel/Netlify for
       frontend) — separate account/token needed when we get there
