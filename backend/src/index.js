@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { authRouter } from "./routes/auth.js";
 import { projectsRouter } from "./routes/projects.js";
 import { traceabilityRouter } from "./routes/traceability.js";
+import { compliancePacksRouter } from "./routes/compliancePacks.js";
 import { startScheduler, computeAuditReadiness } from "./agent/scheduler.js";
 import { requireAuth } from "./middleware/auth.js";
 import { loadOrgProject } from "./lib/authz.js";
@@ -17,6 +18,7 @@ app.use(express.json());
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 app.use("/api/auth", authRouter);
+app.use("/api/compliance-packs", compliancePacksRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/projects/:projectId/trace", traceabilityRouter);
 

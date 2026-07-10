@@ -15,7 +15,7 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-async function seedPack({ standardId, name, description, terminologyMaps, gapRules }) {
+async function seedPack({ standardId, name, description, terminologyMaps, gapRules, artifactTemplates }) {
   const pack = await prisma.compliancePack.upsert({
     where: { standardId },
     update: { name, description },
@@ -30,6 +30,11 @@ async function seedPack({ standardId, name, description, terminologyMaps, gapRul
   await prisma.gapRule.deleteMany({ where: { compliancePackId: pack.id } });
   await prisma.gapRule.createMany({
     data: gapRules.map((r) => ({ ...r, compliancePackId: pack.id })),
+  });
+
+  await prisma.artifactTemplate.deleteMany({ where: { compliancePackId: pack.id } });
+  await prisma.artifactTemplate.createMany({
+    data: artifactTemplates.map((a) => ({ ...a, compliancePackId: pack.id })),
   });
 
   return pack;
@@ -106,6 +111,33 @@ async function main() {
         },
       },
     ],
+    artifactTemplates: [
+      {
+        name: "Design and Development File (DDF)",
+        requiredSections: [
+          { name: "Design and Development Plan", description: "Scope, responsibilities, stages, and review points for the design effort." },
+          { name: "Design Inputs", description: "User needs, intended use, and regulatory/design input requirements." },
+          { name: "Design Outputs", description: "Specifications, drawings, and software that meet the design inputs." },
+          { name: "Design Review Records", description: "Formal design review minutes and dispositions." },
+          { name: "Design Verification Records", description: "Evidence that design outputs meet design inputs." },
+          { name: "Design Validation Records", description: "Evidence the device meets user needs and intended use, under actual or simulated conditions." },
+          { name: "Design Transfer Records", description: "Evidence design outputs were correctly translated into production specifications." },
+          { name: "Design Change Records", description: "History of design changes, rationale, and re-verification/re-validation as needed." },
+          { name: "Risk Management File Reference", description: "Cross-reference to the ISO 14971 risk management file for this device." },
+          { name: "Usability Engineering File Reference", description: "Cross-reference to the IEC 62366 usability engineering file for this device." },
+        ],
+      },
+      {
+        name: "Medical Device File (MDF)",
+        requiredSections: [
+          { name: "Device Specifications", description: "Finished-device specifications, including drawings and composition." },
+          { name: "Production Process Specifications", description: "Equipment, environment, methods, and procedures used in production." },
+          { name: "Quality Assurance Procedures", description: "Acceptance criteria and QA procedures applied during production." },
+          { name: "Packaging and Labeling Specifications", description: "Approved packaging and labeling, including any control numbers." },
+          { name: "Installation, Maintenance, and Servicing Procedures", description: "Required if the device needs installation or servicing after manufacture." },
+        ],
+      },
+    ],
   });
 
   const aerospace = await seedPack({
@@ -177,6 +209,75 @@ async function main() {
           mustLinkToSubtype: "system_requirement",
           linkType: "mitigates",
         },
+      },
+    ],
+    // Mirrors DO-178C Annex A software life cycle data categories.
+    artifactTemplates: [
+      {
+        name: "Certification & Planning Data",
+        requiredSections: [
+          { name: "Plan for Software Aspects of Certification (PSAC)", description: "Overall certification approach agreed with the certification authority." },
+          { name: "Software Development Plan (SDP)", description: "Development standards, methods, and tools used for this software." },
+          { name: "Software Verification Plan (SVP)", description: "Verification methods, environment, and independence requirements." },
+          { name: "Software Configuration Management Plan (SCMP)", description: "Baseline, change control, and problem-reporting procedures." },
+          { name: "Software Quality Assurance Plan (SQAP)", description: "SQA activities and transition criteria between life cycle processes." },
+        ],
+      },
+      {
+        name: "Development Standards",
+        requiredSections: [
+          { name: "Software Requirements Standards", description: "Rules and conventions for expressing software requirements." },
+          { name: "Software Design Standards", description: "Rules and conventions for software architecture and design." },
+          { name: "Software Code Standards", description: "Coding standards applied to source code." },
+        ],
+      },
+      {
+        name: "Software Requirements Data",
+        requiredSections: [
+          { name: "System Requirements Allocated to Software", description: "ARP4754A system requirements allocated to the software item." },
+          { name: "High-Level Requirements", description: "Software requirements derived from allocated system requirements." },
+          { name: "Derived Requirements", description: "Requirements not directly traceable to a higher-level requirement, with rationale." },
+        ],
+      },
+      {
+        name: "Software Design Description",
+        requiredSections: [
+          { name: "Software Architecture", description: "Top-level software structure and component interfaces." },
+          { name: "Low-Level Requirements", description: "Requirements detailed enough to generate source code without further information." },
+          { name: "Interface Control Description", description: "Hardware/software and software/software interface definitions." },
+        ],
+      },
+      {
+        name: "Source Code",
+        requiredSections: [
+          { name: "Source Code Listing", description: "The actual source code implementing the low-level requirements." },
+          { name: "Compiler / Linker Configuration", description: "Build environment configuration needed to reproduce the executable object code." },
+        ],
+      },
+      {
+        name: "Software Verification Data",
+        requiredSections: [
+          { name: "Verification Cases and Procedures", description: "Test cases and procedures for requirements-based testing." },
+          { name: "Verification Results", description: "Recorded results of executing verification cases and procedures." },
+          { name: "Structural Coverage Analysis", description: "Evidence of structural coverage achieved by requirements-based tests." },
+        ],
+      },
+      {
+        name: "Software Configuration Management Data",
+        requiredSections: [
+          { name: "Problem Reports", description: "Reported anomalies and their resolution status." },
+          { name: "Change History", description: "Record of approved changes to configuration items." },
+          { name: "Software Configuration Index (SCI)", description: "Identifies the configuration of the software product." },
+          { name: "Software Life Cycle Environment Configuration Index (SECI)", description: "Identifies the tools and environment used to produce the software." },
+        ],
+      },
+      {
+        name: "Software Accomplishment Summary",
+        requiredSections: [
+          { name: "Summary of Compliance", description: "Summary of how the software life cycle data shows compliance with the PSAC." },
+          { name: "Deviations", description: "Approved deviations from the plans or standards, with rationale." },
+          { name: "Open Problem Reports", description: "Problem reports open at the time of certification, with impact assessment." },
+        ],
       },
     ],
   });
