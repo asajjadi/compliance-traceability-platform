@@ -78,15 +78,31 @@ between sessions.
       as a follow-up (a ReqIF-to-CSV converter would unblock it without an
       API change).
 
+## Done (this iteration, continued further still)
+
+- [x] On-prem/air-gapped deployment story: `docker-compose.yml` (Postgres +
+      backend + frontend/nginx), `backend/Dockerfile`, `frontend/Dockerfile`
+      + `nginx.conf` (SPA served statically, `/api/*` reverse-proxied to the
+      backend container), root `.env.example`, documented in
+      `docs/SELF_HOSTING.md` including air-gapped build/transfer notes.
+      **Caveat**: no Docker daemon was available in the environment this was
+      built in, so `docker compose up --build` itself has not been run
+      end-to-end — only `docker compose config` (syntax/variable
+      validation, passed) and each container's underlying commands run
+      directly on the host (`npm ci`, `prisma generate`, `prisma migrate
+      deploy`, `npm run build`, all verified working individually). Run the
+      full compose stack once in a real Docker environment before relying
+      on it for a customer deployment.
+
 ## Next up (not yet built)
 - [ ] Hosting/deployment setup so the app is live and usable from a phone
       browser (e.g. Railway/Render for backend+DB, Vercel/Netlify for
-      frontend) — separate account/token needed when we get there
+      frontend) — **blocked**: needs a separate account/token the user
+      hasn't provided.
 - [ ] 21 CFR Part 11-style e-signature/audit controls if evidence sign-off
       becomes a feature (validation gate noted in strategy doc)
-- [ ] On-prem/air-gapped deployment story for aerospace/defense customers
-      (parity with Trace.Space, who already offer this)
-- [ ] Decide software-only vs. software+expert-review hybrid GTM model
+- [ ] **Blocked on user decision**: software-only vs. software+expert-review
+      hybrid GTM model — a business call, not a coding task.
 
 ## Open strategic questions (carried from discussion)
 

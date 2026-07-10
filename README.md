@@ -78,3 +78,9 @@ and links, and see the live audit-readiness score and gap report.
 cd backend
 node src/agent/scheduler.js --once
 ```
+
+## Self-hosting / on-prem
+
+See **[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md)** to run the whole stack
+via `docker compose up` instead — relevant for aerospace/defense customers
+who need on-prem or air-gapped deployment.
