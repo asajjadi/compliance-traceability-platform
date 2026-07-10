@@ -99,10 +99,20 @@ between sessions.
       browser (e.g. Railway/Render for backend+DB, Vercel/Netlify for
       frontend) — **blocked**: needs a separate account/token the user
       hasn't provided.
-- [ ] 21 CFR Part 11-style e-signature/audit controls if evidence sign-off
-      becomes a feature (validation gate noted in strategy doc)
+- [ ] 21 CFR Part 11-style e-signature/audit controls — **blocked on user
+      decision**: this item is explicitly conditional ("if evidence sign-off
+      becomes a feature") on a product-scoping call that hasn't been made.
+      Building sign-off/e-signature workflows speculatively, before that's
+      decided, risks the wrong design (who can sign, what "meaning of
+      signature" options are needed, whether it's scoped to EvidenceArtifact
+      only or also gap-report exports) — worth 10 minutes of product
+      discussion before code.
 - [ ] **Blocked on user decision**: software-only vs. software+expert-review
       hybrid GTM model — a business call, not a coding task.
+
+All remaining "Next up" items are blocked on the user (external
+credentials or a product/business decision) as of 2026-07-10 — every item
+buildable without that input has been completed.
 
 ## Open strategic questions (carried from discussion)
 
