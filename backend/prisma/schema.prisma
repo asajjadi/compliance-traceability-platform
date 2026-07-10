@@ -1,0 +1,213 @@
+// Core, sector-agnostic schema.
+// Industry-specific behavior lives in CompliancePack / GapRule / TerminologyMap
+// data, NOT in separate tables or forked models. See docs/ARCHITECTURE.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ENGINEER
+  QUALITY
+  VIEWER
+}
+
+model Organization {
+  id        String    @id @default(cuid())
+  name      String
+  createdAt DateTime  @default(now())
+  users     User[]
+  projects  Project[]
+}
+
+model User {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  name           String?
+  role           Role         @default(ENGINEER)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime     @default(now())
+}
+
+model Project {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime     @default(now())
+
+  requirements   RequirementNode[]
+  designElements DesignElement[]
+  verifications  VerificationRecord[]
+  riskControls   RiskControl[]
+  evidence       EvidenceArtifact[]
+  traceLinks     TraceLink[]
+  auditEvents    AuditEvent[]
+  compliancePacks ProjectCompliancePack[]
+}
+
+// ---- Generic traceability graph nodes ----
+// node_subtype carries the sector-specific meaning (e.g. "user_need",
+// "system_requirement", "design_input"). A CompliancePack's TerminologyMap
+// decides what label the UI renders for a given subtype.
+
+model RequirementNode {
+  id          String   @id @default(cuid())
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   String
+  nodeSubtype String // e.g. "user_need" | "system_requirement" | "design_input"
+  title       String
+  description String?
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  linksFrom TraceLink[] @relation("ReqLinksFrom")
+  linksTo   TraceLink[] @relation("ReqLinksTo")
+}
+
+model DesignElement {
+  id          String   @id @default(cuid())
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   String
+  nodeSubtype String // e.g. "spec" | "drawing" | "architecture_item" | "code_module"
+  title       String
+  description String?
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VerificationRecord {
+  id          String   @id @default(cuid())
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   String
+  nodeSubtype String // e.g. "test_case" | "test_result" | "review_record"
+  title       String
+  outcome     String? // e.g. "pass" | "fail" | "pending"
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RiskControl {
+  id            String   @id @default(cuid())
+  project       Project  @relation(fields: [projectId], references: [id])
+  projectId     String
+  nodeSubtype   String // e.g. "hazard" | "failure_mode" | "mitigation"
+  title         String
+  severity      String?
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model EvidenceArtifact {
+  id          String   @id @default(cuid())
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   String
+  title       String
+  fileUrl     String?
+  artifactType String? // matches CompliancePack.ArtifactTemplate.name
+  createdAt   DateTime @default(now())
+}
+
+// Generic edge table linking any node type to any other node type.
+// fromType/toType hold the model name as a string (e.g. "RequirementNode").
+model TraceLink {
+  id        String   @id @default(cuid())
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  fromType  String
+  fromId    String
+  toType    String
+  toId      String
+  linkType  String // e.g. "verifies" | "mitigates" | "implements" | "traces_to"
+  createdAt DateTime @default(now())
+
+  requirementFrom RequirementNode? @relation("ReqLinksFrom", fields: [fromId], references: [id], map: "trace_req_from")
+  requirementTo   RequirementNode? @relation("ReqLinksTo", fields: [toId], references: [id], map: "trace_req_to")
+}
+
+// ---- Compliance packs (the sector-specific configuration layer) ----
+
+model CompliancePack {
+  id          String   @id @default(cuid())
+  standardId  String   @unique // e.g. "iso13485", "do178c", "arp4754a"
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  terminologyMaps  TerminologyMap[]
+  artifactTemplates ArtifactTemplate[]
+  gapRules         GapRule[]
+  reportTemplates  ReportTemplate[]
+  projects         ProjectCompliancePack[]
+}
+
+model TerminologyMap {
+  id               String         @id @default(cuid())
+  compliancePack   CompliancePack @relation(fields: [compliancePackId], references: [id])
+  compliancePackId String
+  nodeSubtype      String // matches RequirementNode/DesignElement/etc nodeSubtype
+  label            String // e.g. "Design and Development File (DDF)"
+}
+
+model ArtifactTemplate {
+  id               String         @id @default(cuid())
+  compliancePack   CompliancePack @relation(fields: [compliancePackId], references: [id])
+  compliancePackId String
+  name             String // e.g. "Design and Development File"
+  requiredSections Json? // structured list of required subsections
+}
+
+model GapRule {
+  id               String         @id @default(cuid())
+  compliancePack   CompliancePack @relation(fields: [compliancePackId], references: [id])
+  compliancePackId String
+  name             String // e.g. "risk_control_needs_verification"
+  description      String?
+  // Simple declarative rule shape the agent evaluates at runtime, e.g.:
+  // { "requires": "RiskControl", "mustLinkTo": "VerificationRecord", "linkType": "mitigates" }
+  ruleDefinition    Json
+}
+
+model ReportTemplate {
+  id               String         @id @default(cuid())
+  compliancePack   CompliancePack @relation(fields: [compliancePackId], references: [id])
+  compliancePackId String
+  name             String
+  format           String @default("pdf")
+}
+
+model ProjectCompliancePack {
+  id               String         @id @default(cuid())
+  project          Project        @relation(fields: [projectId], references: [id])
+  projectId        String
+  compliancePack   CompliancePack @relation(fields: [compliancePackId], references: [id])
+  compliancePackId String
+  attachedAt       DateTime       @default(now())
+
+  @@unique([projectId, compliancePackId])
+}
+
+// Immutable audit trail — needed across every sector for audit readiness.
+model AuditEvent {
+  id        String   @id @default(cuid())
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  actor     String
+  action    String
+  entity    String
+  entityId  String
+  detail    Json?
+  createdAt DateTime @default(now())
+}
