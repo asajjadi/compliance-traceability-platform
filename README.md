@@ -92,3 +92,11 @@ node src/agent/scheduler.js --once
 ## Confidentiality & Responsible Use
 
 This public repository contains demonstration materials only. It does not contain confidential client, employer, clinical, or proprietary data. Any regulated deployment would require appropriate requirements definition, risk assessment, cybersecurity controls, verification, validation, and quality-system governance.
+
+## Portfolio & Security
+
+- [Public portfolio-demo boundary](docs/PORTFOLIO_DEMO_SCOPE.md)
+- [Security policy](SECURITY.md)
+- [Copyright and permitted use](LICENSE)
+
+© 2026 Amir Sajjadi. All rights reserved.
